@@ -37,80 +37,65 @@ export default function MainComponent() {
       setURL(newUrl)
     }
   }, [key, value]);
-  
-  // Function to check all the methods
-  function ValidateMethod() { 
-    switch (options) {
-      case 'POST':
-        axios
-          .post(url , JSON.parse(mykeyval))
-          .then((res) => {
-            setData(res.data);
-            setError("");
-            setMyKeyVal("");
-            setBodyShow(false);
-            setMyKeyVal("")
-            setAddHeader("")
-          })
-        break;
-      case 'PUT':
-        axios.put(url, JSON.parse(mykeyval)).then((res) => {
-          console.log(res.data);
-          setData(res.data);
-          setStatus(res.status)
-          setStatusText(res.statusText)
-          setMyKeyVal("")
-          setAddHeader("")
-        })
-        break;
-      case 'DELETE':
-        axios.delete(`${url}`).then((res) => {
-          setData(res.data);
-          setError("");
-          setBodyShow(false);
-          setAddHeader("")
-          setStatus(res.status)
-          setStatusText(res.statusText)
-        });
-        break;
-      default:
-        axios.get(url)
-          .then((res) => {
-          setData(res.data);
-          setError("");
-          setStatus(res.status)
-          setStatusText(res.statusText)
-            setQueryParams(false)
-            setAddHeader("")
-        });
-        break;
+
+  // Function to make the API call using axios
+  const ValidateMethod = (method) => {
+    let config = {
+      method: method,
+      url: url
+    };
+    if (addHeader !== "") {
+      config.headers = { "Content-Type": "application/json", ...JSON.parse(addHeader) };
     }
-  }
+    if (method === "POST" || method === "PUT") {
+      config.data = JSON.parse(mykeyval);
+    }
+
+    axios(config)
+      .then((res) => {
+        setData(res.data);
+        setError("");
+        setMyKeyVal("");
+        setBodyShow(false);
+        setMyKeyVal("");
+        setAddHeader("");
+        setStatus(res.status);
+        setStatusText(res.statusText);
+        setQueryParams(false);
+      })
+      .catch((error) => {
+        setError(error.message);
+        setData("");
+        setStatus("");
+        setStatusText("");
+      });
+  };
+  
 
   //On submit the url and to get the response
   const handleSubmit = () => {
     //Using Try catch block so that if any error comes then it goes to the catch block
     try {
-
       // Using interceptors request and response for loader
       axios.interceptors.request.use((request) => {
-        document.getElementById('overlay').style.display = "block";
+        document.getElementById("overlay").style.display = "block";
         return request;
-      })
+      });
       axios.interceptors.response.use((response)=>{
-        document.getElementById('overlay').style.display = "none";
+        document.getElementById("overlay").style.display = "none";
         return response;
-      })
-      ValidateMethod()
+      });
+      ValidateMethod(options);
 
       //Handling the Errors if they occured
     } catch (error) {
       setError(error.message);
       setData("");
-      setStatus("")
-      setStatusText("")
+      setStatus("");
+      setStatusText("");
     }
   };
+
   return (
     <div>
             <div className="container mt-4">
