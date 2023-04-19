@@ -1,12 +1,10 @@
 import axios from "axios";
-import React, { useMemo, useState } from "react";
-
-
+import React, { useEffect, useState } from "react";
 import "../App.css";
+
 export default function MainComponent() {
   //States used
   const [cardShow, setCardShow] = useState(false);
-  const [myId, setMyId] = useState(0);
   const [headerValue, setHeaderValue] = useState(false);
   const [addHeader , setAddHeader] = useState("")
   const [options, setOptions] = useState("GET");
@@ -20,49 +18,30 @@ export default function MainComponent() {
   const [status, setStatus] = useState("");
   const [statusText, setStatusText] = useState("");
   const [queryParams, setQueryParams] = useState("");
-  //Validating the url that it is valid or not
-  const validateUrl = () => {
-    if (url.charAt(url.length - 1) === Number) {
-      let my_value = url.slice(-1);
-      setMyId(my_value);
-      console.log(myId);
-    }
-  };
-  useMemo(() => {
+
+  useEffect(() => {
     if (url !== "") {
-      const newURL = new URL(url);
-      const searchParams = newURL.searchParams;
+      const newUrl = new URL(url);
+      const searchParams = newUrl.searchParams;
       console.log(searchParams);
-      searchParams.forEach((_, paramKey) => {
-        if (paramKey !== key) {
-          searchParams.delete(paramKey);
+      searchParams.forEach((_, Key) => {
+        if (Key !== key) {
+          searchParams.delete(Key);
         }
       });
       if (value || key) {
-        newURL.searchParams.set(key,value);
+        newUrl.searchParams.set(key,value);
       } else {
-        newURL.searchParams.delete(key,value);
+        newUrl.searchParams.delete(key,value);
       }
-      setURL(newURL)
+      setURL(newUrl)
     }
-  }, [key,value]);
-
-  //On submit the url and to get the response
-  const handleSubmit = async () => {
-    //Using Try catch block so that if any error comes then it goes to the catch block
-    try {
-
-      axios.interceptors.request.use((request) => {
-        document.getElementById('overlay').style.display = "block";
-        return request;
-      })
-      axios.interceptors.response.use((response)=>{
-        document.getElementById('overlay').style.display = "none";
-        return response;
-      })
-
-      //if method selected by user is POST 
-      if (options === "POST") {
+  }, [key, value]);
+  
+  // Function to check all the methods
+  function ValidateMethod() { 
+    switch (options) {
+      case 'POST':
         axios
           .post(url , JSON.parse(mykeyval))
           .then((res) => {
@@ -73,12 +52,18 @@ export default function MainComponent() {
             setMyKeyVal("")
             setAddHeader("")
           })
-          .catch((error) => {
-            setError(error.message);
-          });
-      }
-      //if method selected by user is DELETE to delete any values
-      if (options === "DELETE") {
+        break;
+      case 'PUT':
+        axios.put(url, JSON.parse(mykeyval)).then((res) => {
+          console.log(res.data);
+          setData(res.data);
+          setStatus(res.status)
+          setStatusText(res.statusText)
+          setMyKeyVal("")
+          setAddHeader("")
+        })
+        break;
+      case 'DELETE':
         axios.delete(`${url}`).then((res) => {
           setData(res.data);
           setError("");
@@ -87,10 +72,8 @@ export default function MainComponent() {
           setStatus(res.status)
           setStatusText(res.statusText)
         });
-      }
-      //if method selected by user is GET
-      if (options === "GET") {
-        setBodyShow(false);
+        break;
+      default:
         axios.get(url)
           .then((res) => {
           setData(res.data);
@@ -100,20 +83,26 @@ export default function MainComponent() {
             setQueryParams(false)
             setAddHeader("")
         });
-      }
-      //if method selected by user is PUT
-      if (options === "PUT") {  
-        axios.put(url, JSON.parse(mykeyval)).then((res) => {
-            console.log(res.data);
-          setData(res.data);
-          setStatus(res.status)
-          setStatusText(res.statusText)
-          setMyKeyVal("")
-          setAddHeader("")
-          }).catch((error) => {
-            setError(error.message);
-          });
-      }
+        break;
+    }
+  }
+
+  //On submit the url and to get the response
+  const handleSubmit = () => {
+    //Using Try catch block so that if any error comes then it goes to the catch block
+    try {
+      
+      // Using interceptors request and response for loader
+      axios.interceptors.request.use((request) => {
+        document.getElementById('overlay').style.display = "block";
+        return request;
+      })
+      axios.interceptors.response.use((response)=>{
+        document.getElementById('overlay').style.display = "none";
+        return response;
+      })
+      ValidateMethod()
+
       //Handling the Errors if they occured
     } catch (error) {
       setError(error.message);
@@ -183,7 +172,7 @@ export default function MainComponent() {
                               value={url}
                                     onChange={(e) => {
                                       setURL(e.target.value);
-                                      validateUrl();
+
                                     }}
                                   />
                                 </div>
