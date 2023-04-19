@@ -91,7 +91,7 @@ export default function MainComponent() {
   const handleSubmit = () => {
     //Using Try catch block so that if any error comes then it goes to the catch block
     try {
-      
+
       // Using interceptors request and response for loader
       axios.interceptors.request.use((request) => {
         document.getElementById('overlay').style.display = "block";
